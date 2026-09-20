@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>社区AI无障碍守护系统 V1.1</title>
+    <style>
+        *{box-sizing: border-box;font-family:Microsoft YaHei;margin:0;padding:0;}
+        body{background:#f0f2f5;padding:30px;}
+        .container{display:flex;gap:30px;max-width:1400px;margin:0 auto;}
+        .video-box{flex:2;background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 12px #00000015;}
+        .log-box{flex:1;background:#fff;padding:20px;border-radius:12px;box-shadow:0 2px 12px #00000015;height:85vh;overflow-y:auto;}
+        h2{margin-bottom:16px;color:#222;}
+        img{width:100%;border-radius:8px;}
+        .log-item{border-bottom:1px solid #eee;padding:14px 0;}
+        .log-time{color:#666;font-size:14px;}
+        .log-event{color:red;font-weight:bold;margin:4px 0;font-size:16px;}
+        .log-img{max-width:120px;margin-top:8px;border:1px solid #ddd;border-radius:4px;}
+        #clearBtn{
+            background:#4096ff;color:white;border:none;padding:10px 16px;border-radius:6px;
+            cursor:pointer;font-size:15px;margin-bottom:16px;
+        }
+        #clearBtn:hover{background:#1874e8;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="video-box">
+            <h2>实时监控画面</h2>
+            <img src="{{ url_for('video_feed') }}">
+        </div>
+        <div class="log-box">
+            <h2>告警记录</h2>
+            <button id="clearBtn">清空全部告警记录</button>
+            <div id="logList"></div>
+        </div>
+    </div>
+    <script>
+        function refreshLog(){
+            fetch("/get_log")
+            .then(res=>res.json())
+            .then(data=>{
+                let html = "";
+                data.forEach(item=>{
+                    html += `
+                    <div class="log-item">
+                        <div class="log-time">${item.time}</div>
+                        <div class="log-event">${item.event}</div>
+                        <img class="log-img" src="/alert_snapshot/${item.snapshot}">
+                    </div>`
+                })
+                document.getElementById("logList").innerHTML = html;
+            })
+        }
+        // 清空日志按钮事件
+        document.getElementById("clearBtn").onclick = function(){
+            fetch("/clear_log").then(()=>refreshLog());
+        }
+        refreshLog();
+        setInterval(refreshLog,3000);
+    </script>
+</body>
+</html>
